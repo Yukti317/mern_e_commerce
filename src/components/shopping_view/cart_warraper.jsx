@@ -2,12 +2,13 @@ import React from "react";
 import { SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 import { Button } from "../ui/button";
 import UserCartItem from "./cart_item";
+import { useNavigate } from "react-router-dom";
 
 
-function UserCartWrapper({ cartData,DeleteCartItem, handleCartUpdate }) {
+function UserCartWrapper({ cartData,DeleteCartItem, handleCartUpdate,setOpen }) {
+  const navigate = useNavigate()
 
   const totalCartItem = cartData && cartData.length > 0 ? 
-  
   cartData.reduce((sum, cartData)=> sum + (
     cartData?.saleprice > 0 ? cartData?.saleprice  : cartData?.price
   ) * cartData?.quantity,0) 
@@ -17,7 +18,9 @@ function UserCartWrapper({ cartData,DeleteCartItem, handleCartUpdate }) {
       <SheetHeader>
         <SheetTitle>Your Cart</SheetTitle>
       </SheetHeader>
-      <div className="space-y-4 p-4">
+      {cartData && cartData.length > 0 ?
+      <>
+ <div className="space-y-4 p-4">
         {cartData && cartData.length ?  cartData.map((cartItems) => <UserCartItem key={cartItems?._id} cartItems={cartItems} DeleteCartItem={DeleteCartItem} handleCartUpdate={handleCartUpdate}/>):null
           }
       </div>
@@ -26,8 +29,10 @@ function UserCartWrapper({ cartData,DeleteCartItem, handleCartUpdate }) {
           <span className="font-bold">Total</span>
           <span className="font-bold">₹{totalCartItem}</span>
         </div>
-        <Button className="w-full mt-5">CheckOut</Button>
+        <Button onClick={()=>{navigate('/shop/checkout'),setOpen(false)}}  className="w-full mt-5 cursor-pointer">CheckOut</Button>
       </div>
+      </>
+     :<p className="space-y-4 p-4">Cart is empty</p>}
     </SheetContent>
   );
 }

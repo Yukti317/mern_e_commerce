@@ -13,9 +13,10 @@ import { ArrowUpDownIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import ShopProducts from "./product";
 import { createData, readData } from "@/components/ui/axios";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import ProductDetailDialog from "./productDetail";
 import { useSelector } from "react-redux";
+import { toast } from "sonner";
 
 function createSearchParams(filterparams) {
   const queryParams = [];
@@ -34,10 +35,15 @@ function ProductListing() {
   const [filter, setFilter] = useState({});
   const [sort, setSort] = useState("title-atoz");
   const [searchParams, setSearchParams] = useSearchParams();
+  const [cartdata, setCartData] = useState([])
   const [productdetail, setProductDetail] = useState();
   const [openDialog, setOpendialog] = useState(false);
-  const [qty, setQty]= useState(1)
+  const [qty, setQty] = useState(1)
   const { user } = useSelector((state) => state.auth);
+  const location = useLocation();
+  const { message, productid } = location.state ?? {}
+
+  const categorySearchparams = searchParams.get('category')
   // fetchProducts
   const GetAllProduct = async (searchfilter, sort) => {
     const query = new URLSearchParams({
@@ -74,16 +80,10 @@ function ProductListing() {
     setFilter(cpyFilter);
     sessionStorage.setItem("filters", JSON.stringify(cpyFilter));
   };
-  useEffect(() => {
-    if (filter && Object.keys(filter).length > 0) {
-      const createQueryString = createSearchParams(filter);
-      setSearchParams(new URLSearchParams(createQueryString));
-    }
-  }, [filter]);
 
   const handleGetproduct = async (id) => {
     setOpendialog(true);
-    const res = await readData(`/shop/products/getprofuctById/${id}`, {
+    const res = await readData(`/shop/products/getprofuctById/${productid ? productid : id}`, {
       header: {
         "Content-Type": "application/json",
       },
@@ -95,18 +95,18 @@ function ProductListing() {
   useEffect(() => {
     const filterdata = sessionStorage.getItem("filters");
     setFilter(JSON.parse(filterdata));
-  }, []);
+  }, [categorySearchparams]);
 
   useEffect(() => {
     GetAllProduct(filter, sort);
-  }, [filter, sort]);
+  }, [filter, sort,]);
 
   useEffect(() => {
     if (filter && Object.keys(filter).length > 0) {
       const createQueryString = createSearchParams(filter);
       setSearchParams(new URLSearchParams(createQueryString));
     }
-  }, [filter]);
+  }, [filter, categorySearchparams]);
 
   const GetCartProducts = async () => {
     const res = await await readData(`/shop/cartItems/fetchCart/${user.id}`, {
@@ -114,14 +114,29 @@ function ProductListing() {
         "Content-Type": "application/json",
       },
     });
+    setCartData(res.data.items)
   };
 
-  const AddProducts = async (productId, quantity) => {
+  const AddProducts = async (productId, totalstock) => {
+    console.log("22222222", cartdata)
     const data = {
       userId: user.id,
       productId: productId,
       quantity: 1,
     };
+    if (cartdata.length) {
+      const indexofItem = cartdata.findIndex(item => item.productId === productId)
+      if (indexofItem > -1) {
+        const quantity = cartdata[indexofItem].quantity
+        console.log("quantity", quantity + 1, totalstock)
+        if (quantity + 1 > totalstock) {
+          toast.info(`Only ${totalstock} can be added to this product`)
+          return;
+        }
+
+      }
+    }
+
     const res = await createData("", "/shop/cartItems/addtocart", data, {
       header: {
         "Content-Type": "application/json",
@@ -129,8 +144,17 @@ function ProductListing() {
     });
     if (res.status === 200) {
       GetCartProducts();
+      toast("Product added successfully");
     }
   };
+
+  useEffect(() => {
+    if (message === 'home') {
+      handleGetproduct(productid)
+    }
+    GetCartProducts()
+  }, [])
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-6 p-4 md:p-6">
@@ -171,14 +195,14 @@ function ProductListing() {
               </DropdownMenu>
             </div>
           </div>
-
-          <div className="grid grid-cols-1 m-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            <ShopProducts
-              handleGetproduct={handleGetproduct}
-              productItem={Allproducts}
-              AddProducts={AddProducts}
-            />
-          </div>
+          {Allproducts.length ?
+            <div className="grid grid-cols-1 m-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <ShopProducts
+                handleGetproduct={handleGetproduct}
+                productItem={Allproducts}
+                AddProducts={AddProducts}
+              />
+            </div> : <p className="text-center font-bold mt-5">Produs is not available</p>}
         </div>
 
         <ProductDetailDialog

@@ -6,14 +6,14 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import React from "react";
 import { useSelector } from "react-redux";
 
-function ShopProducts({ productItem, handleGetproduct,AddProducts }) {
+function ShopProducts({ productItem, handleGetproduct, AddProducts }) {
 
   return (
     <>
       {productItem &&
         productItem?.map((product) => (
           <Card className="w-full max-w-sm mx-auto p-0">
-         
+           
             <div
               onClick={() => handleGetproduct(product._id)}
               className="cursor-pointer"
@@ -24,8 +24,20 @@ function ShopProducts({ productItem, handleGetproduct,AddProducts }) {
                   alt={product.title}
                   className="w-full h-[200px] object-cover rounded-t-lg"
                 />
-                {product?.saleprice > 0 ? (
-                  <Badge className="absolute ms-3 top-2 bg-red-500 hove:bg-red-600">
+                {product?.totalStock === 0 ? (
+                  <Badge className="absolute ms-3 me-3  top-2 bg-red-500 hove:bg-red-600">
+                    {" "}
+                    Out Of Stock
+                  </Badge>
+                ) : 
+                product?.totalStock <= 5 ? (
+                  <Badge className="absolute ms-3 me-3  top-2 bg-red-500 hove:bg-red-600">
+                    {" "}
+                   {`Only ${product?.totalStock} items left`}
+                  </Badge>
+                ) : 
+                product?.saleprice > 0 ? (
+                  <Badge className="absolute ms-3  top-2 bg-red-500 hove:bg-red-600">
                     {" "}
                     Sale
                   </Badge>
@@ -45,11 +57,10 @@ function ShopProducts({ productItem, handleGetproduct,AddProducts }) {
                 </div>
                 <div className="flex justify-between items-center">
                   <span
-                    className={`${
-                      product?.saleprice > 0
+                    className={`${product?.saleprice > 0
                         ? "line-through text-gray-500"
                         : "text-primary"
-                    } text-lg font-semibold `}
+                      } text-lg font-semibold `}
                   >
                     ₹{product?.price}
                   </span>
@@ -60,16 +71,17 @@ function ShopProducts({ productItem, handleGetproduct,AddProducts }) {
                   ) : null}
                 </div>
               </CardContent>
-              
+
             </div>
             <CardFooter>
-                <Button
-                  className="w-full mb-5"
-                  onClick={() => AddProducts(product._id)}
-                >
-                  Add to cart
-                </Button>
-              </CardFooter>
+              <Button
+                className="w-full mb-5 cursor-pointer" 
+                onClick={() => AddProducts(product._id, product.totalStock)}
+                disabled={product.totalStock === 0}
+              >
+                {product.totalStock === 0 ? "Out pf Stock" : "Add to cart"}
+              </Button>
+            </CardFooter>
           </Card>
         ))}
     </>

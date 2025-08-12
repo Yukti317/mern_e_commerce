@@ -3,6 +3,7 @@ import { Button } from "../ui/button";
 import { Minus, Plus, Trash } from "lucide-react";
 
 function UserCartItem({ cartItems, DeleteCartItem, handleCartUpdate }) {
+  console.log("cartItems", cartItems)
   return (
     <div className="flex item-center space-x-4">
       <img

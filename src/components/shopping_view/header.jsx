@@ -1,3 +1,4 @@
+
 /* eslint-disable no-unused-vars */
 import {
   House,
@@ -32,7 +33,7 @@ function MenuItems() {
   const navigate = useNavigate();
   const handleNavigate = (curItem, sectionname) => {
     sessionStorage.removeItem("filters");
-    const currentFilter = curItem.id !== "home" ? { category: [curItem.id] } : null;
+    const currentFilter = curItem.id !== "home" && curItem.id !== "products" && curItem.id !== "search" ? { category: [curItem.id] } : null;
     sessionStorage.setItem("filters", JSON.stringify(currentFilter));
     navigate(curItem.to);
   };
@@ -60,6 +61,7 @@ function HeaderRightContent({ user }) {
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
   const [cartData, setCartdata] = useState();
+  const [cartitemcount, setCartItemcount] = useState()
   const logoutUser = async () => {
     const res = await createData("", "/auth/logout", "", {
       header: {
@@ -79,7 +81,12 @@ function HeaderRightContent({ user }) {
         "Content-Type": "application/json",
       },
     });
-    setCartdata(res.data.items);
+    console.log("res", res.data.items)
+    if (res.success === true) {
+      setCartdata(res.data.items);
+      setCartItemcount(res?.data?.items?.length)
+
+    }
   };
 
   const DeleteCartItem = async (productid) => {
@@ -92,6 +99,21 @@ function HeaderRightContent({ user }) {
     }
   };
   const handleCartUpdate = async (cartItem, typeofbtn) => {
+    if (typeofbtn === "plus") {
+      if (cartData?.length) {
+        console.log("cartItem", cartData)
+        const indexofItem = cartData.findIndex(item => item.productId === cartItem.productId)
+        if (indexofItem > -1) {
+          const quantity = cartData[indexofItem].quantity
+          console.log("indexofItem", quantity, quantity + 1, cartItem.totalStock, quantity + 1 > cartItem.totalstock)
+          if (quantity + 1 > cartItem.totalStock) {
+            toast.info(`Only ${cartItem.totalStock} items can be added to this product`)
+            return;
+          }
+
+        }
+      }
+    }
     const qty =
       typeofbtn === "plus" ? cartItem.quantity + 1 : cartItem.quantity - 1;
     const data = {
@@ -115,33 +137,34 @@ function HeaderRightContent({ user }) {
     setCartdata(updatedCart);
   };
   useEffect(() => {
-    if (open) {
-      GetCartProducts();
-    }
+    GetCartProducts();
   }, [open]);
+
   return (
     <div className="flex lg:items-center lg:flex-row flex-col gap-4">
       <Sheet open={open} onOpenChange={() => setOpen(false)}>
         <Button
           variant="outline"
           size="icon"
-          className="cursor-pointer"
+          className="cursor-pointer relative"
           onClick={() => setOpen(true)}
         >
           <ShoppingCart className="h-6 w-6" />
+          <span className="absolute top-[-3px] right-[2px] font-bold text-sm">{cartitemcount || 0}</span>
           <span className="sr-only">User Cart</span>
         </Button>
         <UserCartWrapper
           cartData={cartData}
           DeleteCartItem={DeleteCartItem}
           handleCartUpdate={handleCartUpdate}
+          setOpen={setOpen}
         />
       </Sheet>
 
       <DropdownMenu>
         <DropdownMenuTrigger aschild>
-          <Avatar className="bg-black">
-            <AvatarFallback className="bg-black text-white font-extrabold">
+          <Avatar className="bg-black cursor-pointer">
+            <AvatarFallback className="bg-black text-white font-extrabold ">
               {firstLetter}
             </AvatarFallback>
           </Avatar>

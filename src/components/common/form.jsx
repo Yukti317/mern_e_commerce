@@ -12,7 +12,7 @@ import { Textarea } from "../ui/textarea";
 
 import { Button } from "../ui/button";
 
-function CommonForm({ formcontrols, buttonText, formik, loader }) {
+function CommonForm({ formcontrols, buttonText, formik, loader,disabled }) {
   const renderInput = (controlitem) => {
     let element = null;
     let types = {
@@ -21,14 +21,14 @@ function CommonForm({ formcontrols, buttonText, formik, loader }) {
       Textarea: "textarea",
     };
 
-    switch (controlitem.componentType) {
+    switch (controlitem.componentType) {      
       case types.Input:
         element = (
           <Input
             name={controlitem.name}
             type={controlitem.type}
-            value={formik.values[controlitem.name] || ""}
-            onChange={formik.handleChange}
+            value={formik?.values[controlitem.name] || ""}
+            onChange={formik?.handleChange}
             placeholder={controlitem.placeholder}
             id={controlitem.name}
           />
@@ -38,10 +38,11 @@ function CommonForm({ formcontrols, buttonText, formik, loader }) {
         element = (
           <Select
             name={controlitem.name}
-            value={formik.values[controlitem.name]} // optional; useful for controlled component
+            value={formik?.values[controlitem.name]} // optional; useful for controlled component
             onValueChange={(value) => {
-              formik.setFieldValue(controlitem.name, value);
+              formik?.setFieldValue(controlitem.name, value);
             }}
+            disabled={disabled}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder={controlitem.placeholder} />
@@ -63,8 +64,8 @@ function CommonForm({ formcontrols, buttonText, formik, loader }) {
           <Textarea
             name={controlitem.name}
             type={controlitem.type}
-            value={formik.values[controlitem.name] || ""}
-            onChange={formik.handleChange}
+            value={formik?.values[controlitem.name] || ""}
+            onChange={formik?.handleChange}
             placeholder={controlitem.placeholder}
             id={controlitem.name}
           />
@@ -76,8 +77,8 @@ function CommonForm({ formcontrols, buttonText, formik, loader }) {
           <Input
             name={controlitem.name}
             type={controlitem.type}
-            value={formik.values[controlitem.name] || ""}
-            onChange={formik.handleChange}
+            value={formik?.values[controlitem.name] || ""}
+            onChange={formik?.handleChange}
             placeholder={controlitem.placeholder}
             id={controlitem.name}
           />
@@ -88,9 +89,9 @@ function CommonForm({ formcontrols, buttonText, formik, loader }) {
   };
   return (
     <>
-      <form onSubmit={formik.handleSubmit}>
+      <form onSubmit={formik?.handleSubmit}>
         <div className="flex flex-col gap-3">
-          {formcontrols.map((controlitem) => {
+          {formcontrols?.map((controlitem) => {
             return (
               <>
                 <div
@@ -105,7 +106,7 @@ function CommonForm({ formcontrols, buttonText, formik, loader }) {
             );
           })}
         </div>
-        <Button className="mt-2 w-full " type="submit" >
+        <Button className="mt-2 w-full cursor-pointer" type="submit" disabled={!formik?.dirty}>
           {loader ? "processing.." : buttonText || "Submit"}
         </Button>
       </form>

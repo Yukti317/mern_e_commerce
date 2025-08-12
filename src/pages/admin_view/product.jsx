@@ -22,7 +22,7 @@ import { toast } from "sonner";
 
 function AdminProduct() {
   const [opensidebar, setOpensidebar] = useState(false);
-  const [id, setId] = useState();
+  const [productid, setProductId] = useState();
   const [IsEdit, setIsedit] = useState(false);
   const [loader, setLoader] = useState(false);
   const [imageloader, setImageLoader] = useState(false);
@@ -48,7 +48,7 @@ function AdminProduct() {
         try {
           const data = { ...values, imagename: imageFile?.name };
           const res = await updateData(
-            `/admin/products/updateProduct/${id}`,
+            `/admin/products/updateProduct/${productid}`,
             data,
             {
               header: {
@@ -101,7 +101,7 @@ function AdminProduct() {
     setData(res.data);
   };
 
-  const GetProductbyId = async () => {
+  const GetProductbyId = async (id) => {
     if (id) {
       const res = await readData(`/admin/products/getProductbyid/${id}`, {
         header: {
@@ -135,7 +135,7 @@ function AdminProduct() {
 
   useEffect(() => {
     GetAllProduct();
-    if (IsEdit === true) GetProductbyId();
+    if (IsEdit === true && productid) GetProductbyId(productid);
     if (!IsEdit) {
       formik.setFieldValue("title", "");
       formik.setFieldValue("description", "");
@@ -147,7 +147,7 @@ function AdminProduct() {
       formik.setFieldValue("image", "");
       setImageFile(null);
     }
-  }, [IsEdit]);
+  }, [IsEdit, productid]);
 
   const addProduct = () => {
     setIsedit(false), setOpensidebar(true);
@@ -162,7 +162,7 @@ function AdminProduct() {
         <AdminProductTile
           data={data}
           setOpensidebar={setOpensidebar}
-          setId={setId}
+          setId={setProductId}
           setIsedit={setIsedit}
           DeleteProduct={DeleteProduct}
         />

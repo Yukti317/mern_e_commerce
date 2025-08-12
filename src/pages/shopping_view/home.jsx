@@ -1,4 +1,3 @@
- 
 
 import React, { useEffect, useState } from "react";
 import bannerOne from "../../assets/banner_1.webp";
@@ -20,15 +19,19 @@ import {
   WatchIcon,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { readData } from "@/components/ui/axios";
+import { createData, readData } from "@/components/ui/axios";
 import ShopProducts from "./product";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { useSelector } from "react-redux";
 
 function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [Allproducts, setAllproducts] = useState([]);
   const slides = [bannerOne, bannerTwo, bannerThree];
-  const navigate = useNavigate()
+  const [cartData, setCartdata] = useState();
+  const { user } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
   const CategoryWithIcon = [
     { id: "men", label: "Men", icon: ShirtIcon },
     { id: "women", label: "Women", icon: CloudLightningIcon },
@@ -77,8 +80,57 @@ function Home() {
       [sectionname]: [curItem.id],
     };
     sessionStorage.setItem("filters", JSON.stringify(currentFilter));
-    navigate('/shop/productslisting')
+    navigate("/shop/productslisting");
   };
+
+  const GetCartProducts = async () => {
+    const res = await await readData(`/shop/cartItems/fetchCart/${user.id}`, {
+      header: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    setCartdata(res.data.items)
+  };
+  const AddProducts = async (productId, totalstock) => {
+    const data = {
+      userId: user.id,
+      productId: productId,
+      quantity: 1,
+    };
+
+    if (cartData?.length) {
+      const indexofItem = cartData.findIndex(item => item.productId === productId)
+      if (indexofItem > -1) {
+        const quantity = cartData[indexofItem].quantity
+        console.log("quantity", quantity + 1, totalstock)
+        if (quantity + 1 > totalstock) {
+          toast.info(`Only ${totalstock} can be added to this product`)
+          return;
+        }
+
+      }
+    }
+    const res = await createData("", "/shop/cartItems/addtocart", data, {
+      header: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (res.status === 200) {
+      GetCartProducts();
+      toast("Product added successfully");
+
+    }
+  };
+  const handleGetproduct = (id) => {
+    console.log("idd", id);
+    navigate("/shop/productslisting", { state: { message: "home", productid: id } });
+  };
+
+  useEffect(() => {
+    GetCartProducts()
+  }, [])
+
   return (
     <div className="flex flex-col min-h-screen">
       <div className="relative w-full h-[600px] overflow-hidden">
@@ -86,9 +138,8 @@ function Home() {
           <img
             src={slide}
             key={i}
-            className={`${
-              i === currentSlide ? "opacity-100" : "opacity-0"
-            } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000`}
+            className={`${i === currentSlide ? "opacity-100" : "opacity-0"
+              } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000`}
           />
         ))}
         <Button
@@ -142,7 +193,10 @@ function Home() {
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {BrandWithIcon.map((item) => (
-              <Card   onClick={() => handleNavigate(item, "brand")} className="cursor-pointer hover:shadow-lg transition-shadow ">
+              <Card
+                onClick={() => handleNavigate(item, "brand")}
+                className="cursor-pointer hover:shadow-lg transition-shadow "
+              >
                 <CardContent className="flex flex-col items-center justify-center p-6">
                   <item.icon className="w-12 h-12 mb-4 text-primary" />
                   <span className="font-bold">{item.label}</span>
@@ -160,7 +214,11 @@ function Home() {
         <div className="container mx-auto p-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {Allproducts && Allproducts.length > 0 ? (
-              <ShopProducts productItem={Allproducts} />
+              <ShopProducts
+                handleGetproduct={handleGetproduct}
+                productItem={Allproducts}
+                AddProducts={AddProducts}
+              />
             ) : null}
           </div>
         </div>
