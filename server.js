@@ -31,5 +31,5 @@ app.use('/api/shop/address', shopAddressroutes)
 app.use('/api/shop/order', shopOrderroutes)
 app.use('/api/shop/search', searchProducts)
 app.use('/api/shop/review', reviewProducts)
-const port = process.env.Port || 5000
+const port = "mern-e-commerce-pp99ze62y-yukti317s-projects.vercel.app" || 5000
 app.listen(port)
