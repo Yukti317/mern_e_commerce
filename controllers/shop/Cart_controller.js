@@ -57,26 +57,24 @@ const fetchCartItems = async (req, res) => {
 
     const cart = await Cart.findOne({ userId }).populate({
       path: "items.productId",
-      select: "image title price saleprice",
+      select: "image title price saleprice totalStock",
     });
 
     if (!cart) {
-      res.status(404).json({
+      res.status(400).json({
         success: false,
-        message: "Cart not found",
+        message: "CartItem is not found",
       });
     }
     const validItems = cart.items.filter(
       (productItem) => productItem.productId
     );
-
     if (validItems.length < cart.items.length) {
       cart.items = validItems;
 
       await cart.save();
     }
-
-    console.log("validItems", validItems)
+  
     const populateCartItems = validItems.map((item) => ({
     
       productId: item.productId._id,
@@ -84,6 +82,7 @@ const fetchCartItems = async (req, res) => {
       title: item.productId.title,
       price: item.productId.price,
       saleprice: item.productId.saleprice,
+      totalStock: item.productId.totalStock, 
       quantity: item.quantity,
     }));
     res.status(200).json({
@@ -112,7 +111,6 @@ const upDateCart = async (req, res) => {
       });
     }
     let cart = await Cart.findOne({ userId });
-    console.log("cart", cart)
     if (!cart) {
       res.status(404).json({
         success: false,
@@ -145,7 +143,6 @@ const upDateCart = async (req, res) => {
       quantity: item.quantity ,
     }));
 
-    console.log('populateCartItems',populateCartItems)
     res.status(200).json({
       success: true,
       data: {
@@ -165,7 +162,6 @@ const upDateCart = async (req, res) => {
 const deleteCart = async (req, res) => {
   try {
     const { userId, productId } = req.params;
-    console.log("userId", userId, "productId", productId)
     if (!userId || !productId) {
       return res.status(400).json({
         success: false,
@@ -187,7 +183,6 @@ const deleteCart = async (req, res) => {
     cart.items = cart.items.filter(
       (item) => item.productId._id.toString() !== productId
     );
-    console.log("cart.items", cart.items)
 
     await cart.save();
     await cart.populate({

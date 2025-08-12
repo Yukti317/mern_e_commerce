@@ -2,7 +2,6 @@ const Product = require("../../models/product");
 
 const getFilterProducts = async (req, res) => {
   try {
-    console.log("reqreq", req.query)
     const {category= [], brand = [], sortBy="title-atoz"} = req.query
     let filters = {}
     if(category?.length){
