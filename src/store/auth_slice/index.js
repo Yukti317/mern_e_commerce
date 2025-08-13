@@ -42,17 +42,20 @@ const authSlice = createSlice({
     builder
       .addCase(check_auth.pending, (state) => {
         state.isLoading = true;
+        state.error = null;
       })
       .addCase(check_auth.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload.success ? action.payload.user : null;
         state.role = action.payload.success ? action.payload.user?.role : null; // ✅ important
         state.isAuthenticated = action.payload.success;
+         state.error = action.payload.success ? null : "User not authenticated";
       })
       .addCase(check_auth.rejected, (state) => {
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
+        
       });
   },
 });
