@@ -1,6 +1,7 @@
 //BASIC SETUP 
 const express = require('express');
 require('./dbconnection/config') //db connection
+require('dotenv').config()
 const cookieparser = require('cookie-parser')
 const cors = require('cors')
 const authrouter = require('./routes/auth/auth_routes')
@@ -31,5 +32,8 @@ app.use('/api/shop/address', shopAddressroutes)
 app.use('/api/shop/order', shopOrderroutes)
 app.use('/api/shop/search', searchProducts)
 app.use('/api/shop/review', reviewProducts)
-const port = "mern-e-commerce-pp99ze62y-yukti317s-projects.vercel.app" || 5000
+const port = process.env.Port || 5000
+app.get("/", (req,res)=>{
+    res.send("Node js code deployedd...")
+})
 app.listen(port)
